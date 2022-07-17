@@ -38,7 +38,7 @@ pub struct Data<'a> {
     #[serde(borrow)]
     pub info_text: Cow<'a, str>,
     #[serde(borrow)]
-    pub pagination: Cow<'a, str>,
+    pub pagination: Option<Cow<'a, str>>,
 
     #[serde(borrow)]
     pub players: Vec<Rc<Player<'a>>>,
