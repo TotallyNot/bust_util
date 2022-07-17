@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Quick Bust
 // @namespace    https://elimination.me/
-// @version      1.0.2
+// @version      1.0.3
 // @description  Torn Quick Bust
 // @author       Pyrit [2111649]
 // @match        https://www.torn.com/jailview.php*
@@ -99,6 +99,7 @@ const updateList = async () => {
     $parent.find(".aux-verb").text(data.total > 1 ? "People are" : "Person is");
     $pagination_wrap.html(data.pagination ? data.pagination : "");
     $user_info_wrap.empty().append(data.list);
+    paginationUpdate();
     state.fetching = false;
 };
 
