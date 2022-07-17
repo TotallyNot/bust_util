@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Quick Bust
 // @namespace    https://elimination.me/
-// @version      1.0.3
+// @version      1.1.0
 // @description  Torn Quick Bust
 // @author       Pyrit [2111649]
 // @match        https://www.torn.com/jailview.php*
@@ -43,6 +43,18 @@ GM_addStyle(`
 .quick-bust-title {
     flex-grow: 1;
     font-weight: bold;
+}
+#quick-bust-reload {
+    font-size: 24px;
+    text-decoration: none;
+    padding: 0;
+    margin: -12px 0px -10px;
+    color: var(--default-color);
+}
+@media screen and (min-width: 800px) {
+    #quick-bust-reload {
+        display: none;
+    }
 }
 `);
 
@@ -120,6 +132,7 @@ const mountSettings = () => {
             state.quickBust ? "checked" : ""
         } />
     </label>
+    <button id="quick-bust-reload">&#10227;</button>
 </div>`
     );
 
@@ -133,6 +146,7 @@ const mountSettings = () => {
         GM_setValue("state", state);
         updateList();
     });
+    $("#quick-bust-reload").click(() => updateList());
 };
 
 const origOpen = XMLHttpRequest.prototype.open;
