@@ -1,17 +1,82 @@
 mod utils;
 
+use indoc::indoc;
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
+use tera::{Context, Tera};
 use wasm_bindgen::prelude::*;
 
-// When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
-// allocator.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+const TEMPLATE: &'static str = indoc! {r#"
+    {% if quick_bust -%}
+        {% set bust_step = "breakout1" -%}
+    {% else -%}
+        {% set bust_step = "breakout" -%}
+    {% endif -%}
+    {% if quick_bail -%}
+        {% set bail_step = "buy1" -%}
+    {% else -%}
+        {% set bail_step = "buy" -%}
+    {% endif -%}
+    {% for player in players -%}
+        {% if loop.last -%}
+            <li class="last">
+        {% else -%}
+            <li>
+        {% endif -%}
+            {{ player.online_offline | safe }}
+            {{ player.print_tag | safe }}
+            {{ player.print_name | safe }}
+            <span class="info-wrap">
+                <span class="time">
+                    <span class="title bold">
+                        TIME
+                        <span>:</span>
+                    </span>
+                    {{ player.time }}
+                </span>
+                <span class="level">
+                    <span class="title bold">
+                        LEVEL
+                        <span>:</span>
+                    </span>
+                    {{ player.level }}
+                </span>
+                <span class="reason">
+                    {{ player.jailreason }}
+                </span>
+            </span>
+            <a class="bye t-gray-3" href="jailview.php?XID={{ player.user_id }}&action=rescue&step={{ bail_step }}">
+                <span class="bye-icon"></span>
+                <span class="title bold">BUY</span>
+                {% if quick_bail -%}
+                    <span class="quick-bust-icon">&curarrm;</span>
+                {% endif -%}
+            </a>
+            <a class="bust t-gray-3" href="jailview.php?XID={{ player.user_id }}&action=rescue&step={{ bust_step }}">
+                <span class="bust-icon"></span>
+                <span class="title bold">BUST</span>
+                {% if quick_bust -%}
+                    <span class="quick-bust-icon">&curarrm;</span>
+                {% endif -%}
+            </a>
+            <div class="confirm-bye"></div>
+            <div class="confirm-bust"></div>
+            <div class="bottom-white"></div>
+        </li>
+    {% endfor %}
+"#};
+
+lazy_static! {
+    pub static ref TEMPLATES: Tera = {
+        let mut tera = Tera::default();
+        tera.add_raw_template("jail_list", TEMPLATE).unwrap();
+        tera
+    };
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Player<'a> {
@@ -51,6 +116,26 @@ pub struct Payload<'a> {
     pub success: bool,
 }
 
+#[derive(Serialize)]
+pub struct ListContext<'a> {
+    pub players: Vec<Rc<Player<'a>>>,
+    pub quick_bust: bool,
+    pub quick_bail: bool,
+}
+
+#[derive(Serialize)]
+pub struct ListResponse<'a> {
+    pub list: String,
+    pub is_player_exist: bool,
+    pub is_user_text_name: bool,
+    pub total: &'a str,
+
+    #[serde(borrow)]
+    pub info_text: Cow<'a, str>,
+    #[serde(borrow)]
+    pub pagination: Option<Cow<'a, str>>,
+}
+
 fn parse_time_string(time: &str) -> Option<u32> {
     let mut time_split = time.trim_end().rsplit(' ');
     let first_part = time_split.next()?;
@@ -77,8 +162,13 @@ impl<'a> Player<'a> {
 }
 
 #[wasm_bindgen]
-pub fn process_jail_info(data: &str) -> Result<String, String> {
-    let mut payload: Payload = serde_json::from_str(data).map_err(|e| format!("{:?}", e))?;
+pub fn process_jail_info(
+    data: &str,
+    quick_bust: bool,
+    quick_bail: bool,
+) -> Result<JsValue, JsError> {
+    let payload: Payload =
+        serde_json::from_str(data).map_err(|e| JsError::new(&format!("{:?}", e)))?;
 
     let mut score_map = BTreeMap::<u32, Rc<Player>>::new();
 
@@ -91,7 +181,24 @@ pub fn process_jail_info(data: &str) -> Result<String, String> {
         }
     }
 
-    payload.data.players = score_map.into_values().collect();
+    let players = score_map.into_values().collect();
+    let context = ListContext {
+        players,
+        quick_bust,
+        quick_bail,
+    };
+    let list = TEMPLATES
+        .render("jail_list", &Context::from_serialize(&context).unwrap())
+        .map_err(|e| JsError::new(&format!("{:?}", e)))?;
 
-    serde_json::to_string(&payload).map_err(|e| format!("{:?}", e))
+    let response = ListResponse {
+        list,
+        is_player_exist: payload.data.is_player_exist,
+        is_user_text_name: payload.data.is_user_text_name,
+        total: payload.data.total,
+        info_text: payload.data.info_text,
+        pagination: payload.data.pagination,
+    };
+
+    Ok(JsValue::from_serde(&response).unwrap())
 }
