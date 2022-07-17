@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Quick Bust
 // @namespace    https://elimination.me/
-// @version      1.0.1
+// @version      1.0.2
 // @description  Torn Quick Bust
 // @author       Pyrit [2111649]
 // @match        https://www.torn.com/jailview.php*
@@ -116,19 +116,19 @@ const mountSettings = () => {
     <label for="quick-bust">
         <span>Quick Bust</span>
         <input type="checkbox" id="quick-bust" ${
-            state.quickBail ? "checked" : ""
+            state.quickBust ? "checked" : ""
         } />
     </label>
 </div>`
     );
 
-    $("#quick-bail").click(() => {
-        state.quickBail = !state.quickBail;
+    $("#quick-bail").click((event) => {
+        state.quickBail = event.target.checked;
         GM_setValue("state", state);
         updateList();
     });
-    $("#quick-bust").click(() => {
-        state.quickBust = !state.quickBust;
+    $("#quick-bust").click((event) => {
+        state.quickBust = event.target.checked;
         GM_setValue("state", state);
         updateList();
     });
