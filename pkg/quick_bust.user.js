@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Quick Bust
 // @namespace    https://elimination.me/
-// @version      1.0.0
+// @version      1.0.1
 // @description  Torn Quick Bust
 // @author       Pyrit [2111649]
 // @match        https://www.torn.com/jailview.php*
@@ -114,7 +114,7 @@ const mountSettings = () => {
         } />
     </label>
     <label for="quick-bust">
-        <span>Quick Bail</span>
+        <span>Quick Bust</span>
         <input type="checkbox" id="quick-bust" ${
             state.quickBail ? "checked" : ""
         } />
