@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Quick Bust
 // @namespace    https://elimination.me/
-// @version      1.1.0
+// @version      1.2.0
 // @description  Torn Quick Bust
 // @author       Pyrit [2111649]
 // @match        https://www.torn.com/jailview.php*
@@ -11,10 +11,16 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        unsafeWindow
-// @resource     wasm https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/bust_util_bg.wasm#sha384=a597ad020ce334aaa4e9c12b94e3b13ad3b077fc89626ece9486ef2d71bf79e855a9d73c64334d8797121eb727974e17
-// @require      https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/util.js#sha384=d55d68f45f24b0ec4ae8cffd8bf6427cbdd541286683cc542340ba93a517a5ea0e41905ba515a9079c74a120502da8fd
+// @resource     wasm https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/bust_util_bg.wasm#sha384=ef4537983e4130d0e8973f964c180b15d415e42589494321cf78ab3e4911918d0bb82b6ccad8710808963a5c02d2307f
+// @require      https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/bust_util.js#sha384=48f44e5f7995f27c2343f0e2a9391e3be71b8509ace83088806632eb553e525601aa35988ea732e19e0daf395fb3b49c
 // @updateURL    https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/quick_bust.user.js
 // ==/UserScript==
+
+const base64 = GM_getResourceURL("wasm").slice(24);
+const binaryString = atob(base64);
+const bytes = Uint8Array.from(binaryString, (c) => c.charCodeAt(0));
+
+const wasm_module = wasm_bindgen(bytes);
 
 GM_addStyle(`
 .quick-bust-icon {
@@ -77,7 +83,8 @@ const updateList = async () => {
         '<li class="last"><span class="ajax-preloader m-top10 m-bottom10"></span></li>'
     );
 
-    const { process_jail_info } = await util;
+    await wasm_module;
+    const { process_jail_info } = wasm_bindgen;
 
     const params = new URLSearchParams();
     params.set("start", start);

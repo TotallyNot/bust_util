@@ -1,80 +1,70 @@
-mod utils;
+#![allow(non_snake_case, non_upper_case_globals)]
+#![warn(clippy::all, clippy::perf, clippy::suspicious, clippy::style)]
 
-use indoc::indoc;
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
-use lazy_static::lazy_static;
+use indoc::indoc;
 use serde::{Deserialize, Serialize};
-use tera::{Context, Tera};
+use tinytemplate::TinyTemplate;
 use wasm_bindgen::prelude::*;
 
-const TEMPLATE: &'static str = indoc! {r#"
-    {% if quick_bust -%}
-        {% set bust_step = "breakout1" -%}
-    {% else -%}
-        {% set bust_step = "breakout" -%}
-    {% endif -%}
-    {% if quick_bail -%}
-        {% set bail_step = "buy1" -%}
-    {% else -%}
-        {% set bail_step = "buy" -%}
-    {% endif -%}
-    {% for player in players -%}
-        {% if loop.last -%}
-            <li class="last">
-        {% else -%}
-            <li>
-        {% endif -%}
-            {{ player.online_offline | safe }}
-            {{ player.print_tag | safe }}
-            {{ player.print_name | safe }}
-            <span class="info-wrap">
-                <span class="time">
-                    <span class="title bold">
-                        TIME
-                        <span>:</span>
-                    </span>
-                    {{ player.time }}
+const TEMPLATE: &str = indoc! {r#"
+    {{ for player in players -}}
+    {{ if @last -}}
+        <li class="last">
+    {{ else -}}
+        <li>
+    {{ endif -}}
+    { player.online_offline | unescaped }
+    { player.print_tag | unescaped }
+    { player.print_name | unescaped }
+        <span class="info-wrap">
+            <span class="time">
+                <span class="title bold">
+                    TIME
+                    <span>:</span>
                 </span>
-                <span class="level">
-                    <span class="title bold">
-                        LEVEL
-                        <span>:</span>
-                    </span>
-                    {{ player.level }}
-                </span>
-                <span class="reason">
-                    {{ player.jailreason }}
-                </span>
+                { player.time }
             </span>
-            <a class="bye t-gray-3" href="jailview.php?XID={{ player.user_id }}&action=rescue&step={{ bail_step }}">
-                <span class="bye-icon"></span>
-                <span class="title bold">BUY</span>
-                {% if quick_bail -%}
-                    <span class="quick-bust-icon">&curarrm;</span>
-                {% endif -%}
-            </a>
-            <a class="bust t-gray-3" href="jailview.php?XID={{ player.user_id }}&action=rescue&step={{ bust_step }}">
-                <span class="bust-icon"></span>
-                <span class="title bold">BUST</span>
-                {% if quick_bust -%}
-                    <span class="quick-bust-icon">&curarrm;</span>
-                {% endif -%}
-            </a>
-            <div class="confirm-bye"></div>
-            <div class="confirm-bust"></div>
-            <div class="bottom-white"></div>
-        </li>
-    {% endfor %}
+            <span class="level">
+                <span class="title bold">
+                    LEVEL
+                    <span>:</span>
+                </span>
+                { player.level }
+            </span>
+            <span class="reason">
+                { player.jailreason }
+            </span>
+        </span>
+        <a class="bye t-gray-3" href="jailview.php?XID={ player.user_id }&action=rescue&step={ bail_action }">
+            <span class="bye-icon"></span>
+            <span class="title bold">BUY</span>
+            {{ if quick_bail -}}
+                <span class="quick-bust-icon">&curarrm;</span>
+            {{ endif -}}
+        </a>
+        <a class="bust t-gray-3" href="jailview.php?XID={ player.user_id }&action=rescue&step={ bust_action }">
+            <span class="bust-icon"></span>
+            <span class="title bold">BUST</span>
+            {{ if quick_bust -}}
+                <span class="quick-bust-icon">&curarrm;</span>
+            {{ endif -}}
+        </a>
+        <div class="confirm-bye"></div>
+        <div class="confirm-bust"></div>
+        <div class="bottom-white"></div>
+    </li>
+    {{ endfor }}
 "#};
 
-lazy_static! {
-    pub static ref TEMPLATES: Tera = {
-        let mut tera = Tera::default();
-        tera.add_raw_template("jail_list", TEMPLATE).unwrap();
-        tera
+thread_local! {
+    pub static TT: TinyTemplate<'static> = {
+        let mut tt = TinyTemplate::new();
+        tt.add_template("jail_list", TEMPLATE).unwrap();
+        tt
     };
 }
 
@@ -121,6 +111,26 @@ pub struct ListContext<'a> {
     pub players: Vec<Rc<Player<'a>>>,
     pub quick_bust: bool,
     pub quick_bail: bool,
+    pub bust_action: &'static str,
+    pub bail_action: &'static str,
+}
+
+impl<'a> ListContext<'a> {
+    pub fn new(players: Vec<Rc<Player<'a>>>, quick_bust: bool, quick_bail: bool) -> Self {
+        Self {
+            players,
+            quick_bust,
+            quick_bail,
+            bust_action: match quick_bust {
+                true => "breakout1",
+                false => "breakout",
+            },
+            bail_action: match quick_bail {
+                true => "buy1",
+                false => "buy",
+            },
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -182,14 +192,11 @@ pub fn process_jail_info(
     }
 
     let players = score_map.into_values().collect();
-    let context = ListContext {
-        players,
-        quick_bust,
-        quick_bail,
-    };
-    let list = TEMPLATES
-        .render("jail_list", &Context::from_serialize(&context).unwrap())
-        .map_err(|e| JsError::new(&format!("{:?}", e)))?;
+    let context = ListContext::new(players, quick_bust, quick_bail);
+    let list = TT.with(|tt| {
+        tt.render("jail_list", &context)
+            .map_err(|e| JsError::new(&format!("{:?}", e)))
+    })?;
 
     let response = ListResponse {
         list,
