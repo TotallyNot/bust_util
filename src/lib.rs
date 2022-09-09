@@ -36,7 +36,7 @@ const TEMPLATE: &str = indoc! {r#"
                 { player.level }
             </span>
             <span class="reason">
-                { player.jailreason }
+                { player.jailreason | unescaped }
             </span>
         </span>
         <a class="bye t-gray-3" href="jailview.php?XID={ player.user_id }&action=rescue&step={ bail_action }">
