@@ -88,7 +88,7 @@ pub struct Player<'a> {
 pub struct Data<'a> {
     pub is_player_exist: bool,
     pub is_user_text_name: bool,
-    pub total: &'a str,
+    pub total: i32,
 
     #[serde(borrow)]
     pub info_text: Cow<'a, str>,
@@ -138,7 +138,7 @@ pub struct ListResponse<'a> {
     pub list: String,
     pub is_player_exist: bool,
     pub is_user_text_name: bool,
-    pub total: &'a str,
+    pub total: i32,
 
     #[serde(borrow)]
     pub info_text: Cow<'a, str>,

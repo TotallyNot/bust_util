@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Quick Bust
 // @namespace    https://elimination.me/
-// @version      1.2.1
+// @version      1.2.2
 // @description  Torn Quick Bust
 // @author       Pyrit [2111649]
 // @match        https://www.torn.com/jailview.php*
@@ -11,8 +11,8 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        unsafeWindow
-// @resource     wasm https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/bust_util_bg.wasm#sha384=a5f9fb6be63aed6cbddd43a0249d81b95adc83234b2ae974ba4213fa25384dabe8eccf8d89244c93a94c451df22a32ae
-// @require      https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/bust_util.js#sha384=48f44e5f7995f27c2343f0e2a9391e3be71b8509ace83088806632eb553e525601aa35988ea732e19e0daf395fb3b49c
+// @resource     wasm https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/bust_util_bg.1.2.2.wasm#sha384=2336fb4c2cb13e602098280593a21b7b84d310d438f7350c80e4e5bd7fa054a7cffe2cdbefc1fe7a8162078087571314
+// @require      https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/bust_util.1.2.2.js#sha384=18f508b829da6759a43ddad651cdee03fd4587e096e98926f297b9c0da86da534d1d290eaac3e62c1e2f6fada11ec682
 // @updateURL    https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/quick_bust.user.js
 // ==/UserScript==
 
@@ -126,21 +126,21 @@ const mountSettings = () => {
     state.mounted = true;
     $msg_info_wrap.after(
         `<div class="cont-gray quick-bust-box">
-    <span class="quick-bust-title">Quick Bust Script</span>
-    <label for="quick-bail">
-        <span>Quick Bail</span>
-        <input type="checkbox" id="quick-bail" ${
-            state.quickBail ? "checked" : ""
-        } />
-    </label>
-    <label for="quick-bust">
-        <span>Quick Bust</span>
-        <input type="checkbox" id="quick-bust" ${
-            state.quickBust ? "checked" : ""
-        } />
-    </label>
-    <button id="quick-bust-reload">&#10227;</button>
-</div>`
+            <span class="quick-bust-title">Quick Bust Script</span>
+            <label for="quick-bail">
+                <span>Quick Bail</span>
+                <input type="checkbox" id="quick-bail" ${
+                    state.quickBail ? "checked" : ""
+                } />
+            </label>
+            <label for="quick-bust">
+                <span>Quick Bust</span>
+                <input type="checkbox" id="quick-bust" ${
+                    state.quickBust ? "checked" : ""
+                } />
+            </label>
+            <button id="quick-bust-reload">&#10227;</button>
+        </div>`
     );
 
     $("#quick-bail").click((event) => {

@@ -3,8 +3,7 @@
 #![cfg(target_arch = "wasm32")]
 
 extern crate wasm_bindgen_test;
-use bust_util::{ListContext, Payload, TEMPLATES};
-use tera::Context;
+use bust_util::{process_jail_info, Payload};
 use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
@@ -22,20 +21,9 @@ fn decode() {
 
 #[wasm_bindgen_test]
 fn template() {
-    let bytes = include_bytes!("./payload.json");
-    let payload = serde_json::from_slice::<Payload>(bytes).unwrap();
+    let payload = include_str!("./payload.json");
 
-    let context = ListContext {
-        players: payload.data.players,
-        quick_bust: false,
-        quick_bail: false,
-    };
+    let res = process_jail_info(payload, true, true);
 
-    let res = TEMPLATES.render("jail_list", &Context::from_serialize(&context).unwrap());
-
-    assert!(
-        res.is_ok(),
-        "Rendering template failed with error: {:?}",
-        res.unwrap_err()
-    );
+    assert!(res.is_ok(), "Rendering template failed with error",);
 }
