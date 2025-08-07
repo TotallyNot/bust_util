@@ -80,8 +80,8 @@ pub struct Player<'a> {
     pub print_tag: Cow<'a, str>,
 
     pub time: &'a str,
-    pub level: &'a str,
-    pub user_id: &'a str,
+    pub level: u32,
+    pub user_id: i32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -167,7 +167,7 @@ fn parse_time_string(time: &str) -> Option<u32> {
 impl<'a> Player<'a> {
     fn score(&self) -> Option<u32> {
         let seconds = parse_time_string(self.time)?;
-        Some((seconds + 3 * 3600) * self.level.parse::<u32>().ok()?)
+        Some((seconds + 3 * 3600) * self.level)
     }
 }
 
@@ -178,7 +178,7 @@ pub fn process_jail_info(
     quick_bail: bool,
 ) -> Result<JsValue, JsError> {
     let payload: Payload =
-        serde_json::from_str(data).map_err(|e| JsError::new(&format!("{:?}", e)))?;
+        serde_json::from_str(data).map_err(|e| JsError::new(&format!("{e:?}")))?;
 
     let mut score_map = BTreeMap::<u32, Rc<Player>>::new();
 
@@ -195,7 +195,7 @@ pub fn process_jail_info(
     let context = ListContext::new(players, quick_bust, quick_bail);
     let list = TT.with(|tt| {
         tt.render("jail_list", &context)
-            .map_err(|e| JsError::new(&format!("{:?}", e)))
+            .map_err(|e| JsError::new(&format!("{e:?}")))
     })?;
 
     let response = ListResponse {
