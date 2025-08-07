@@ -88,7 +88,6 @@ pub struct Player<'a> {
 pub struct Data<'a> {
     pub is_player_exist: bool,
     pub is_user_text_name: bool,
-    pub total: i32,
 
     #[serde(borrow)]
     pub info_text: Cow<'a, str>,
@@ -104,6 +103,7 @@ pub struct Payload<'a> {
     #[serde(borrow)]
     pub data: Data<'a>,
     pub success: bool,
+    pub total: i32,
 }
 
 #[derive(Serialize)]
@@ -202,7 +202,7 @@ pub fn process_jail_info(
         list,
         is_player_exist: payload.data.is_player_exist,
         is_user_text_name: payload.data.is_user_text_name,
-        total: payload.data.total,
+        total: payload.total,
         info_text: payload.data.info_text,
         pagination: payload.data.pagination,
     };

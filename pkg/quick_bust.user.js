@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Quick Bust
 // @namespace    https://elimination.me/
-// @version      1.2.3
+// @version      1.2.4
 // @description  Torn Quick Bust
 // @author       Pyrit [2111649]
 // @match        https://www.torn.com/jailview.php*
@@ -11,7 +11,7 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        unsafeWindow
-// @resource     wasm https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/bust_util_bg.1.2.3.wasm#sha384=39a4a3baf3893de2ec227af2b0437df7e3d9e7802bd842e0615207b67e986e9faa5966cc14a1cce65f3400ba594fddf1
+// @resource     wasm https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/bust_util_bg.1.2.3.wasm#sha384=7914a7fed6df52a9ecf35aa24e14093444bcc110e4f7e53b954d50472bbdf2a3b9a84aafb892eee89e549b848cb64bf8
 // @require      https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/bust_util.1.2.3.js#sha384=a1e7f735e0c3d5ce4d558b39125ee285a02a1f5cfe03b155d91c7125cea648aef30f688fa29d1e387390c05404457e0e
 // @updateURL    https://raw.githubusercontent.com/TotallyNot/bust_util/master/pkg/quick_bust.user.js
 // ==/UserScript==
